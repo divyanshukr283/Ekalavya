@@ -1,0 +1,684 @@
+{% extends "base.html" %}
+{% block title %}Assessment Result — Ekalavya{% endblock %}
+
+{% block content %}
+<section class="result-page">
+  <div class="result-page__orb result-page__orb--{{ prediction | lower | replace(' ', '-') }}" aria-hidden="true"></div>
+  <div class="container" style="padding-top:6rem;padding-bottom:4rem">
+
+    <!-- ── Header ───────────────────────────────────────────── -->
+    <div class="text-center mb-5" data-aos="fade-up">
+      <div class="section-chip mb-3">
+        <i class="fa-solid fa-chart-line me-1" aria-hidden="true"></i>AI Assessment Result
+      </div>
+      <h1 class="section-title">Assessment <span class="gradient-text">Result</span></h1>
+      <p class="text-muted" style="font-size:.85rem">{{ timestamp }}</p>
+    </div>
+
+    <div class="row g-4">
+
+      <!-- ═══════════════════════════════════════════════════════
+           LEFT — Prediction Card
+           ═══════════════════════════════════════════════════════ -->
+      <div class="col-lg-4" data-aos="fade-right">
+
+        <!-- Main prediction badge card -->
+        <div class="res-card res-card--{{ prediction | lower | replace(' ', '-') }} glass-card p-4 text-center mb-4">
+
+          <div class="res-icon-ring res-icon-ring--{{ 'success' if prediction == 'On Track' else ('warning' if prediction == 'At Risk' else 'danger') }} mb-3">
+            <i class="fa-solid {% if prediction == 'On Track' %}fa-user-check{% elif prediction == 'At Risk' %}fa-triangle-exclamation{% else %}fa-circle-xmark{% endif %} fa-3x" aria-hidden="true"></i>
+          </div>
+
+          <div class="res-label mb-2">Educational Status</div>
+
+          <div class="res-badge res-badge--{{ 'success' if prediction == 'On Track' else ('warning' if prediction == 'At Risk' else 'danger') }} mb-3">
+            {% if prediction == 'On Track' %}<i class="fa-solid fa-circle-check me-2" aria-hidden="true"></i>
+            {% elif prediction == 'At Risk' %}<i class="fa-solid fa-triangle-exclamation me-2" aria-hidden="true"></i>
+            {% else %}<i class="fa-solid fa-circle-xmark me-2" aria-hidden="true"></i>{% endif %}
+            {{ prediction }}
+          </div>
+
+          <p class="res-desc">
+            {% if prediction == 'On Track' %}This student is performing well and is <strong>on track</strong> to achieve their educational goals.
+            {% elif prediction == 'At Risk' %}This student shows signs of challenge and is <strong>at risk</strong>. Early intervention is recommended.
+            {% else %}This student is at <strong>high risk of dropout</strong>. Immediate support and intervention is required.{% endif %}
+          </p>
+
+          <!-- Circular confidence meter -->
+          {% if confidence is not none %}
+          <div class="conf-meter mt-4" aria-label="AI Confidence {{ confidence }}%">
+            <div class="conf-meter__ring">
+              <svg viewBox="0 0 100 100" aria-hidden="true">
+                <circle cx="50" cy="50" r="42" fill="none" stroke="var(--clr-border)" stroke-width="8"/>
+                <circle class="conf-meter__arc" cx="50" cy="50" r="42" fill="none"
+                  stroke="{% if prediction == 'On Track' %}#10B981{% elif prediction == 'At Risk' %}#F59E0B{% else %}#EF4444{% endif %}"
+                  stroke-width="8" stroke-linecap="round"
+                  stroke-dasharray="264"
+                  stroke-dashoffset="{{ (264 * (1 - confidence / 100)) | round(1) }}"
+                  transform="rotate(-90 50 50)"/>
+              </svg>
+              <div class="conf-meter__val">
+                <span class="conf-meter__num" data-confidence="{{ confidence }}">0%</span>
+                <small class="conf-meter__lbl">Confidence</small>
+              </div>
+            </div>
+            <div class="conf-meter__desc">
+              {% if confidence >= 90 %}Excellent Confidence
+              {% elif confidence >= 75 %}Good Confidence
+              {% elif confidence >= 60 %}Moderate Confidence
+              {% else %}Low Confidence{% endif %}
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Support level indicator -->
+          <div class="support-level mt-4">
+            <div class="support-level__label">Support Level Required</div>
+            <div class="support-level__track" role="progressbar" aria-label="Support level"
+              aria-valuenow="{{ 25 if prediction == 'On Track' else (65 if prediction == 'At Risk' else 95) }}"
+              aria-valuemin="0" aria-valuemax="100">
+              <div class="support-level__fill support-level__fill--{{ 'success' if prediction == 'On Track' else ('warning' if prediction == 'At Risk' else 'danger') }}"
+                data-width="{{ 25 if prediction == 'On Track' else (65 if prediction == 'At Risk' else 95) }}"></div>
+            </div>
+            <div class="support-level__text">
+              {% if prediction == 'On Track' %}Minimal Support
+              {% elif prediction == 'At Risk' %}Moderate Support
+              {% else %}Intensive Support{% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="d-flex flex-column gap-3">
+          <a href="{{ url_for('assessment') }}" class="ek-btn ek-btn--primary text-center">
+            <i class="fa-solid fa-rotate-right me-2" aria-hidden="true"></i>New Assessment
+          </a>
+          <button class="ek-btn ek-btn--ghost text-center" id="downloadPdfBtn">
+            <i class="fa-solid fa-file-pdf me-2" aria-hidden="true"></i>Download PDF Report
+          </button>
+          <a href="{{ url_for('index') }}" class="ek-btn ek-btn--outline text-center">
+            <i class="fa-solid fa-house me-2" aria-hidden="true"></i>Back to Home
+          </a>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════
+           CENTRE — Charts & Analytics
+           ═══════════════════════════════════════════════════════ -->
+      <div class="col-lg-4" data-aos="fade-up" data-aos-delay="100">
+
+        <!-- Radar chart -->
+        <div class="glass-card p-4 mb-4">
+          <h6 class="res-section-title mb-3">
+            <i class="fa-solid fa-chart-area text-primary me-2" aria-hidden="true"></i>Performance Radar
+          </h6>
+          <canvas id="resultRadar" height="220" aria-label="Student performance radar chart" role="img"></canvas>
+        </div>
+
+        <!-- Academic Scores Bar Chart -->
+        <div class="glass-card p-4">
+          <h6 class="res-section-title mb-3">
+            <i class="fa-solid fa-chart-bar text-purple me-2" aria-hidden="true"></i>Academic Score Breakdown
+          </h6>
+          <canvas id="resultBarChart" height="180" aria-label="Academic scores bar chart" role="img"></canvas>
+        </div>
+
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════
+           RIGHT — Score + Recommendations
+           ═══════════════════════════════════════════════════════ -->
+      <div class="col-lg-4" data-aos="fade-left" data-aos-delay="200">
+
+        <!-- Readiness Score -->
+        <div class="glass-card p-4 mb-4 text-center">
+          <h6 class="res-section-title mb-3">
+            <i class="fa-solid fa-star text-warning me-2" aria-hidden="true"></i>Overall Readiness Score
+          </h6>
+          {% set scores = namespace(total=0, count=0) %}
+          {% for f in ['attendance_percentage','math_score','science_score','english_score','social_science_score','previous_grade_percentage'] %}
+            {% set v = raw_values.get(f, '0') | float %}
+            {% set scores.total = scores.total + v %}
+            {% set scores.count = scores.count + 1 %}
+          {% endfor %}
+          {% set readiness = (scores.total / (scores.count * 1.0)) | round(0) | int if scores.count > 0 else 0 %}
+          <div class="readiness-ring" aria-label="Readiness score {{ readiness }} out of 100">
+            <svg viewBox="0 0 120 120" aria-hidden="true">
+              <circle cx="60" cy="60" r="50" fill="none" stroke="var(--clr-border)" stroke-width="10"/>
+              <circle class="readiness-arc" cx="60" cy="60" r="50" fill="none"
+                stroke="#2563EB" stroke-width="10" stroke-linecap="round"
+                stroke-dasharray="314"
+                stroke-dashoffset="{{ (314 * (1 - readiness / 100)) | round(1) }}"
+                transform="rotate(-90 60 60)"/>
+            </svg>
+            <div class="readiness-val">
+              <span>{{ readiness }}</span><small>/100</small>
+            </div>
+          </div>
+          <div class="readiness-label">
+            {% if readiness >= 80 %}Excellent Readiness
+            {% elif readiness >= 65 %}Good Readiness
+            {% elif readiness >= 50 %}Average Readiness
+            {% else %}Needs Improvement{% endif %}
+          </div>
+        </div>
+
+        <!-- Risk Distribution Doughnut -->
+        <div class="glass-card p-4 mb-4">
+          <h6 class="res-section-title mb-3">
+            <i class="fa-solid fa-chart-pie text-indigo me-2" aria-hidden="true"></i>Risk Factor Distribution
+          </h6>
+          <div style="max-width:180px;margin:0 auto">
+            <canvas id="resultDoughnut" aria-label="Risk factor distribution chart" role="img"></canvas>
+          </div>
+          <div class="doughnut-legend mt-3">
+            <div class="doughnut-legend__item"><span style="background:#10B981"></span>Academic ({{ raw_values.get('math_score','0') | float | round(0) | int }}%)</div>
+            <div class="doughnut-legend__item"><span style="background:#2563EB"></span>Attendance ({{ raw_values.get('attendance_percentage','0') | float | round(0) | int }}%)</div>
+            <div class="doughnut-legend__item"><span style="background:#F59E0B"></span>Study Hrs ({{ [raw_values.get('study_hours_per_day','0') | float * 10, 100] | min | round(0) | int }}%)</div>
+          </div>
+        </div>
+
+        <!-- Recommended Actions -->
+        <div class="glass-card p-4">
+          <h6 class="res-section-title mb-3">
+            <i class="fa-solid fa-list-check text-success me-2" aria-hidden="true"></i>Recommended Actions
+          </h6>
+          <div class="recs-list">
+            {% if prediction == 'On Track' %}
+              <div class="rec-item rec-item--green"><i class="fa-solid fa-check-circle" aria-hidden="true"></i>Maintain current attendance rate</div>
+              <div class="rec-item rec-item--green"><i class="fa-solid fa-check-circle" aria-hidden="true"></i>Encourage extracurricular participation</div>
+              <div class="rec-item rec-item--green"><i class="fa-solid fa-check-circle" aria-hidden="true"></i>Continue current study schedule</div>
+              <div class="rec-item rec-item--green"><i class="fa-solid fa-check-circle" aria-hidden="true"></i>Explore scholarship opportunities</div>
+              <div class="rec-item rec-item--green"><i class="fa-solid fa-check-circle" aria-hidden="true"></i>Set higher academic targets</div>
+            {% elif prediction == 'At Risk' %}
+              <div class="rec-item rec-item--amber"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>Schedule counseling session</div>
+              <div class="rec-item rec-item--amber"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>Improve attendance immediately</div>
+              <div class="rec-item rec-item--amber"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>Provide academic mentoring</div>
+              <div class="rec-item rec-item--amber"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>Review financial aid options</div>
+              <div class="rec-item rec-item--amber"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>Engage parents in discussion</div>
+            {% else %}
+              <div class="rec-item rec-item--red"><i class="fa-solid fa-circle-xmark" aria-hidden="true"></i>Emergency counseling required</div>
+              <div class="rec-item rec-item--red"><i class="fa-solid fa-circle-xmark" aria-hidden="true"></i>Convene parents &amp; administration</div>
+              <div class="rec-item rec-item--red"><i class="fa-solid fa-circle-xmark" aria-hidden="true"></i>Arrange financial assistance</div>
+              <div class="rec-item rec-item--red"><i class="fa-solid fa-circle-xmark" aria-hidden="true"></i>Mental health support needed</div>
+              <div class="rec-item rec-item--red"><i class="fa-solid fa-circle-xmark" aria-hidden="true"></i>Create personal action plan</div>
+            {% endif %}
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── Strengths & Weaknesses + Intervention Plan ───────── -->
+    <div class="row g-4 mt-2">
+
+      <!-- Strengths -->
+      <div class="col-md-6" data-aos="fade-up">
+        <div class="glass-card p-4 h-100">
+          <h6 class="res-section-title mb-3">
+            <i class="fa-solid fa-thumbs-up text-success me-2" aria-hidden="true"></i>Identified Strengths
+          </h6>
+          <div class="sw-grid">
+            {% set att_val = raw_values.get('attendance_percentage', '0') | float %}
+            {% set math_val = raw_values.get('math_score', '0') | float %}
+            {% set sci_val = raw_values.get('science_score', '0') | float %}
+            {% set eng_val = raw_values.get('english_score', '0') | float %}
+            {% set hrs_val = raw_values.get('study_hours_per_day', '0') | float %}
+            {% set prev_val = raw_values.get('previous_grade_percentage', '0') | float %}
+            {% set hw = raw_values.get('homework_completion', '') %}
+            {% set mot = raw_values.get('motivation_level', '') %}
+            {% set mentor = raw_values.get('mentoring_support', '') %}
+            {% set internet = raw_values.get('internet_access', '') %}
+
+            {% if att_val >= 75 %}<div class="sw-item sw-item--strength"><i class="fa-solid fa-check" aria-hidden="true"></i>Good Attendance ({{ att_val | round(0) | int }}%)</div>{% endif %}
+            {% if math_val >= 60 %}<div class="sw-item sw-item--strength"><i class="fa-solid fa-check" aria-hidden="true"></i>Math Performance ({{ math_val | round(0) | int }}%)</div>{% endif %}
+            {% if sci_val >= 60 %}<div class="sw-item sw-item--strength"><i class="fa-solid fa-check" aria-hidden="true"></i>Science Performance ({{ sci_val | round(0) | int }}%)</div>{% endif %}
+            {% if eng_val >= 60 %}<div class="sw-item sw-item--strength"><i class="fa-solid fa-check" aria-hidden="true"></i>English Performance ({{ eng_val | round(0) | int }}%)</div>{% endif %}
+            {% if hrs_val >= 2 %}<div class="sw-item sw-item--strength"><i class="fa-solid fa-check" aria-hidden="true"></i>Dedicated Study Time ({{ hrs_val }}h/day)</div>{% endif %}
+            {% if prev_val >= 60 %}<div class="sw-item sw-item--strength"><i class="fa-solid fa-check" aria-hidden="true"></i>Strong Previous Grade ({{ prev_val | round(0) | int }}%)</div>{% endif %}
+            {% if hw in ['Always', 'Usually'] %}<div class="sw-item sw-item--strength"><i class="fa-solid fa-check" aria-hidden="true"></i>Consistent Homework ({{ hw }})</div>{% endif %}
+            {% if mot in ['Very High', 'High'] %}<div class="sw-item sw-item--strength"><i class="fa-solid fa-check" aria-hidden="true"></i>High Motivation ({{ mot }})</div>{% endif %}
+            {% if mentor == 'Yes' %}<div class="sw-item sw-item--strength"><i class="fa-solid fa-check" aria-hidden="true"></i>Has Mentoring Support</div>{% endif %}
+            {% if internet == 'Yes' %}<div class="sw-item sw-item--strength"><i class="fa-solid fa-check" aria-hidden="true"></i>Internet Access Available</div>{% endif %}
+            {% if att_val < 75 and math_val < 60 and sci_val < 60 and eng_val < 60 and hrs_val < 2 and prev_val < 60 and hw not in ['Always','Usually'] and mot not in ['Very High','High'] and mentor != 'Yes' and internet != 'Yes' %}
+              <div class="sw-item sw-item--neutral"><i class="fa-solid fa-info-circle" aria-hidden="true"></i>No significant strengths detected yet</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Weaknesses -->
+      <div class="col-md-6" data-aos="fade-up" data-aos-delay="100">
+        <div class="glass-card p-4 h-100">
+          <h6 class="res-section-title mb-3">
+            <i class="fa-solid fa-triangle-exclamation text-warning me-2" aria-hidden="true"></i>Areas Needing Improvement
+          </h6>
+          <div class="sw-grid">
+            {% set att_val = raw_values.get('attendance_percentage', '0') | float %}
+            {% set math_val = raw_values.get('math_score', '0') | float %}
+            {% set sci_val = raw_values.get('science_score', '0') | float %}
+            {% set eng_val = raw_values.get('english_score', '0') | float %}
+            {% set hrs_val = raw_values.get('study_hours_per_day', '0') | float %}
+            {% set prev_val = raw_values.get('previous_grade_percentage', '0') | float %}
+            {% set hw = raw_values.get('homework_completion', '') %}
+            {% set mot = raw_values.get('motivation_level', '') %}
+            {% set health = raw_values.get('health_issue', '') %}
+            {% set dropout_hist = raw_values.get('dropout_history_in_family', '') %}
+            {% set device = raw_values.get('digital_device', '') %}
+
+            {% if att_val < 75 %}<div class="sw-item sw-item--weakness"><i class="fa-solid fa-xmark" aria-hidden="true"></i>Low Attendance ({{ att_val | round(0) | int }}%)</div>{% endif %}
+            {% if math_val < 50 %}<div class="sw-item sw-item--weakness"><i class="fa-solid fa-xmark" aria-hidden="true"></i>Weak Math Score ({{ math_val | round(0) | int }}%)</div>{% endif %}
+            {% if sci_val < 50 %}<div class="sw-item sw-item--weakness"><i class="fa-solid fa-xmark" aria-hidden="true"></i>Weak Science Score ({{ sci_val | round(0) | int }}%)</div>{% endif %}
+            {% if eng_val < 50 %}<div class="sw-item sw-item--weakness"><i class="fa-solid fa-xmark" aria-hidden="true"></i>Weak English Score ({{ eng_val | round(0) | int }}%)</div>{% endif %}
+            {% if hrs_val < 1 %}<div class="sw-item sw-item--weakness"><i class="fa-solid fa-xmark" aria-hidden="true"></i>Insufficient Study Hours ({{ hrs_val }}h/day)</div>{% endif %}
+            {% if prev_val < 50 %}<div class="sw-item sw-item--weakness"><i class="fa-solid fa-xmark" aria-hidden="true"></i>Low Previous Grade ({{ prev_val | round(0) | int }}%)</div>{% endif %}
+            {% if hw in ['Rarely', 'Never'] %}<div class="sw-item sw-item--weakness"><i class="fa-solid fa-xmark" aria-hidden="true"></i>Poor Homework Completion ({{ hw }})</div>{% endif %}
+            {% if mot in ['Low', 'Very Low'] %}<div class="sw-item sw-item--weakness"><i class="fa-solid fa-xmark" aria-hidden="true"></i>Low Motivation ({{ mot }})</div>{% endif %}
+            {% if health == 'Yes' %}<div class="sw-item sw-item--weakness"><i class="fa-solid fa-xmark" aria-hidden="true"></i>Health Issues Present</div>{% endif %}
+            {% if dropout_hist == 'Yes' %}<div class="sw-item sw-item--weakness"><i class="fa-solid fa-xmark" aria-hidden="true"></i>Family Dropout History</div>{% endif %}
+            {% if device == 'None' %}<div class="sw-item sw-item--weakness"><i class="fa-solid fa-xmark" aria-hidden="true"></i>No Digital Device</div>{% endif %}
+            {% if att_val >= 75 and math_val >= 50 and sci_val >= 50 and eng_val >= 50 and hrs_val >= 1 and prev_val >= 50 and hw not in ['Rarely','Never'] and mot not in ['Low','Very Low'] and health != 'Yes' and dropout_hist != 'Yes' and device != 'None' %}
+              <div class="sw-item sw-item--neutral"><i class="fa-solid fa-info-circle" aria-hidden="true"></i>No significant weaknesses detected</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Intervention Plan -->
+      <div class="col-12" data-aos="fade-up" data-aos-delay="200">
+        <div class="glass-card p-4">
+          <div class="d-flex align-items-center gap-3 mb-4">
+            <div class="res-section-icon {% if prediction == 'On Track' %}bg-green-soft{% elif prediction == 'At Risk' %}bg-orange-soft{% else %}bg-red-soft{% endif %}">
+              <i class="fa-solid fa-road text-{% if prediction == 'On Track' %}success{% elif prediction == 'At Risk' %}warning{% else %}danger{% endif %} fa-lg" aria-hidden="true"></i>
+            </div>
+            <div>
+              <h5 class="mb-0 fw-700">Intervention Plan</h5>
+              <small class="text-muted">Personalised action roadmap based on assessment</small>
+            </div>
+          </div>
+          <div class="intervention-grid">
+            {% if prediction == 'On Track' %}
+            <div class="intervention-card intervention-card--green">
+              <div class="intervention-card__phase">Phase 1 — Maintain</div>
+              <div class="intervention-card__title"><i class="fa-solid fa-shield-halved me-2"></i>Sustain Performance</div>
+              <ul class="intervention-card__list">
+                <li>Regular attendance monitoring</li>
+                <li>Weekly teacher check-ins</li>
+                <li>Peer-learning programmes</li>
+              </ul>
+            </div>
+            <div class="intervention-card intervention-card--green">
+              <div class="intervention-card__phase">Phase 2 — Enrich</div>
+              <div class="intervention-card__title"><i class="fa-solid fa-rocket me-2"></i>Academic Excellence</div>
+              <ul class="intervention-card__list">
+                <li>Advanced learning material</li>
+                <li>Scholarship exploration</li>
+                <li>Extracurricular involvement</li>
+              </ul>
+            </div>
+            <div class="intervention-card intervention-card--green">
+              <div class="intervention-card__phase">Phase 3 — Grow</div>
+              <div class="intervention-card__title"><i class="fa-solid fa-seedling me-2"></i>Long-term Goals</div>
+              <ul class="intervention-card__list">
+                <li>Career counseling sessions</li>
+                <li>Leadership opportunities</li>
+                <li>Community mentorship roles</li>
+              </ul>
+            </div>
+            {% elif prediction == 'At Risk' %}
+            <div class="intervention-card intervention-card--amber">
+              <div class="intervention-card__phase">Phase 1 — Immediate</div>
+              <div class="intervention-card__title"><i class="fa-solid fa-person-running me-2"></i>Address Root Causes</div>
+              <ul class="intervention-card__list">
+                <li>Identify attendance barriers</li>
+                <li>One-on-one counseling session</li>
+                <li>Family engagement meeting</li>
+              </ul>
+            </div>
+            <div class="intervention-card intervention-card--amber">
+              <div class="intervention-card__phase">Phase 2 — Support</div>
+              <div class="intervention-card__title"><i class="fa-solid fa-hands-holding-child me-2"></i>Academic Recovery</div>
+              <ul class="intervention-card__list">
+                <li>Remedial tutoring programme</li>
+                <li>Study group formation</li>
+                <li>Financial aid assessment</li>
+              </ul>
+            </div>
+            <div class="intervention-card intervention-card--amber">
+              <div class="intervention-card__phase">Phase 3 — Monitor</div>
+              <div class="intervention-card__title"><i class="fa-solid fa-eye me-2"></i>Ongoing Follow-up</div>
+              <ul class="intervention-card__list">
+                <li>Monthly progress tracking</li>
+                <li>Re-assessment after 60 days</li>
+                <li>Volunteer mentor assignment</li>
+              </ul>
+            </div>
+            {% else %}
+            <div class="intervention-card intervention-card--red">
+              <div class="intervention-card__phase">Phase 1 — Crisis</div>
+              <div class="intervention-card__title"><i class="fa-solid fa-bell me-2"></i>Emergency Response</div>
+              <ul class="intervention-card__list">
+                <li>Immediate family outreach</li>
+                <li>Emergency counseling session</li>
+                <li>Crisis support team activation</li>
+              </ul>
+            </div>
+            <div class="intervention-card intervention-card--red">
+              <div class="intervention-card__phase">Phase 2 — Stabilise</div>
+              <div class="intervention-card__title"><i class="fa-solid fa-life-ring me-2"></i>Core Support</div>
+              <ul class="intervention-card__list">
+                <li>Financial assistance arrangement</li>
+                <li>Mental health support</li>
+                <li>Flexible learning plan</li>
+              </ul>
+            </div>
+            <div class="intervention-card intervention-card--red">
+              <div class="intervention-card__phase">Phase 3 — Recover</div>
+              <div class="intervention-card__title"><i class="fa-solid fa-heart-pulse me-2"></i>Reintegration</div>
+              <ul class="intervention-card__list">
+                <li>Personalised catch-up curriculum</li>
+                <li>Peer buddy programme</li>
+                <li>Weekly NGO volunteer support</li>
+              </ul>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Full Assessment Summary ──────────────────────────── -->
+    <div class="row mt-4">
+      <div class="col-12" data-aos="fade-up">
+        <div class="glass-card p-4">
+          <div class="d-flex align-items-center gap-3 mb-4">
+            <div class="res-section-icon bg-blue-soft">
+              <i class="fa-solid fa-clipboard-list text-primary fa-lg" aria-hidden="true"></i>
+            </div>
+            <div>
+              <h5 class="mb-0 fw-700">Assessment Summary</h5>
+              <small class="text-muted">All 29 features used for AI prediction</small>
+            </div>
+          </div>
+          <div class="summary-table">
+            {% set groups = [
+              ('Personal', ['Student ID', 'Age', 'Gender', 'Class / Grade', 'School Type']),
+              ('Academics', ['Attendance (%)', 'Math Score', 'Science Score', 'English Score', 'Social Science Score', 'Previous Grade (%)']),
+              ('Study', ['Study Hours / Day', 'Homework Completion', 'Learning Difficulty', 'Internet Access', 'Digital Device', 'Motivation Level']),
+              ('Family', ['Parent Education', 'Parent Occupation', 'Annual Family Income', 'Family Size', 'Dropout History in Family', 'Scholarship Received']),
+              ('Transport', ['Distance to School (km)', 'Transportation Mode']),
+              ('Support', ['Mentoring Support', 'Extracurricular Participation', 'Health Issue', 'Teacher Assessment']),
+            ] %}
+            {% for group_name, fields in groups %}
+            <div class="summary-group mb-3">
+              <div class="summary-group__title">{{ group_name }}</div>
+              <div class="summary-group__items">
+                {% for field in fields %}
+                <div class="summary-item">
+                  <span class="summary-item__key">{{ field }}</span>
+                  <span class="summary-item__val">{{ summary.get(field, '—') }}</span>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          <div class="summary-footer mt-3">
+            <i class="fa-solid fa-shield-halved text-success" aria-hidden="true"></i>
+            <small class="text-muted">Data processed in real time. Not stored or retained after this session.&nbsp;|&nbsp;Predicted: {{ timestamp }}</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function () {
+  'use strict';
+
+  const rv   = {{ raw_values | tojson }};
+  const pred = '{{ prediction }}';
+  const col  = pred === 'On Track' ? '#10B981' : pred === 'At Risk' ? '#F59E0B' : '#EF4444';
+
+  /* ── Helper: numeric clamp ─────────────────────────────── */
+  function n(key, fallback) {
+    return Math.min(Math.max(parseFloat(rv[key] || fallback || 0), 0), 100);
+  }
+
+  /* ── Radar Chart ────────────────────────────────────────── */
+  const radarEl = document.getElementById('resultRadar');
+  if (radarEl && typeof Chart !== 'undefined') {
+    const mot = rv.motivation_level === 'Very High' ? 100 :
+                rv.motivation_level === 'High'      ?  80 :
+                rv.motivation_level === 'Medium'    ?  60 :
+                rv.motivation_level === 'Low'       ?  40 : 20;
+    const hw  = rv.homework_completion === 'Always'    ? 100 :
+                rv.homework_completion === 'Usually'   ?  80 :
+                rv.homework_completion === 'Sometimes' ?  60 :
+                rv.homework_completion === 'Rarely'    ?  40 : 20;
+    const alpha = col === '#10B981' ? 'rgba(16,185,129,0.18)'
+                : col === '#F59E0B' ? 'rgba(245,158,11,0.18)'
+                : 'rgba(239,68,68,0.18)';
+    new Chart(radarEl, {
+      type: 'radar',
+      data: {
+        labels: ['Attendance', 'Math', 'Science', 'English', 'Motivation', 'Homework'],
+        datasets: [{
+          data: [n('attendance_percentage'), n('math_score'), n('science_score'), n('english_score'), mot, hw],
+          backgroundColor: alpha,
+          borderColor: col,
+          borderWidth: 2,
+          pointBackgroundColor: col,
+          pointRadius: 4,
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          r: {
+            min: 0, max: 100,
+            ticks: { display: false, stepSize: 25 },
+            grid: { color: 'rgba(100,116,139,0.18)' },
+            pointLabels: {
+              color: getComputedStyle(document.documentElement).getPropertyValue('--clr-muted') || '#64748B',
+              font: { size: 11 }
+            },
+            angleLines: { color: 'rgba(100,116,139,0.18)' },
+          }
+        }
+      }
+    });
+  }
+
+  /* ── Academic Bar Chart ─────────────────────────────────── */
+  const barEl = document.getElementById('resultBarChart');
+  if (barEl && typeof Chart !== 'undefined') {
+    new Chart(barEl, {
+      type: 'bar',
+      data: {
+        labels: ['Math', 'Science', 'English', 'Social Sci', 'Prev Grade'],
+        datasets: [{
+          data: [
+            n('math_score'), n('science_score'), n('english_score'),
+            n('social_science_score'), n('previous_grade_percentage')
+          ],
+          backgroundColor: ['#2563EB','#10B981','#F59E0B','#7C3AED','#14B8A6'],
+          borderRadius: 6,
+          borderSkipped: false,
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: {
+            min: 0, max: 100,
+            grid: { color: 'rgba(100,116,139,0.12)' },
+            ticks: { color: '#64748B', font: { size: 10 } }
+          },
+          x: {
+            grid: { display: false },
+            ticks: { color: '#64748B', font: { size: 10 } }
+          }
+        }
+      }
+    });
+  }
+
+  /* ── Risk Distribution Doughnut ─────────────────────────── */
+  const doughEl = document.getElementById('resultDoughnut');
+  if (doughEl && typeof Chart !== 'undefined') {
+    const acad = Math.round((n('math_score') + n('science_score') + n('english_score')) / 3);
+    const att  = n('attendance_percentage');
+    const sth  = Math.min(parseFloat(rv.study_hours_per_day || 0) * 10, 100);
+    new Chart(doughEl, {
+      type: 'doughnut',
+      data: {
+        labels: ['Academic', 'Attendance', 'Study Hours'],
+        datasets: [{
+          data: [acad, att, sth],
+          backgroundColor: ['#10B981','#2563EB','#F59E0B'],
+          borderWidth: 0,
+          hoverOffset: 6,
+        }]
+      },
+      options: {
+        responsive: true,
+        cutout: '68%',
+        plugins: { legend: { display: false } }
+      }
+    });
+  }
+
+  /* ── Animate confidence counter ─────────────────────────── */
+  const confNum = document.querySelector('.conf-meter__num');
+  if (confNum) {
+    const target = parseFloat(confNum.dataset.confidence || 0);
+    let current  = 0;
+    const step   = target / 60;
+    const timer  = setInterval(() => {
+      current = Math.min(current + step, target);
+      confNum.textContent = current.toFixed(1) + '%';
+      if (current >= target) clearInterval(timer);
+    }, 16);
+  }
+
+  /* ── Animate support level bar ──────────────────────────── */
+  document.querySelectorAll('.support-level__fill[data-width]').forEach(el => {
+    el.style.width = '0%';
+    setTimeout(() => {
+      el.style.transition = 'width 1.2s cubic-bezier(.4,0,.2,1)';
+      el.style.width = el.dataset.width + '%';
+    }, 500);
+  });
+
+  /* ── PDF Download using jsPDF ───────────────────────────── */
+  document.getElementById('downloadPdfBtn')?.addEventListener('click', () => {
+    if (typeof window.jspdf === 'undefined' && typeof jsPDF === 'undefined') {
+      alert('PDF library not loaded. Please check your internet connection.');
+      return;
+    }
+    const { jsPDF } = window.jspdf || window;
+    const doc  = new jsPDF({ unit: 'mm', format: 'a4' });
+    const W    = doc.internal.pageSize.getWidth();
+    const summ = {{ summary | tojson }};
+    const conf = '{{ confidence if confidence else "N/A" }}';
+    const ts   = '{{ timestamp }}';
+    const predVal = pred;
+
+    /* — Brand header — */
+    doc.setFillColor(37, 99, 235);
+    doc.rect(0, 0, W, 28, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(18); doc.setFont('helvetica', 'bold');
+    doc.text('EKALAVYA', 14, 12);
+    doc.setFontSize(9);  doc.setFont('helvetica', 'normal');
+    doc.text('AI-Powered Educational Assessment Platform', 14, 19);
+    doc.setFontSize(8);
+    doc.text(`Generated: ${ts}`, W - 14, 19, { align: 'right' });
+
+    /* — Prediction banner — */
+    const bClr = predVal === 'On Track' ? [16,185,129] : predVal === 'At Risk' ? [245,158,11] : [239,68,68];
+    doc.setFillColor(...bClr);
+    doc.rect(0, 28, W, 18, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(13); doc.setFont('helvetica', 'bold');
+    doc.text(`Educational Status: ${predVal}`, W / 2, 40, { align: 'center' });
+
+    /* — Confidence & readiness — */
+    doc.setTextColor(15, 23, 42);
+    doc.setFontSize(10); doc.setFont('helvetica', 'normal');
+    let y = 56;
+    doc.setFillColor(248, 250, 252);
+    doc.roundedRect(14, y - 5, W - 28, 18, 3, 3, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.text(`AI Confidence Score:`, 20, y + 3);
+    doc.setFont('helvetica', 'normal');
+    doc.text(conf !== 'N/A' ? `${conf}%` : 'N/A', 70, y + 3);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Prediction Timestamp:`, W / 2 + 2, y + 3);
+    doc.setFont('helvetica', 'normal');
+    doc.text(ts, W / 2 + 50, y + 3);
+    y += 22;
+
+    /* — Recommended actions — */
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
+    doc.setTextColor(37, 99, 235);
+    doc.text('RECOMMENDED ACTIONS', 14, y); y += 7;
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+    doc.setTextColor(15, 23, 42);
+    const recs = predVal === 'On Track'
+      ? ['Maintain current attendance rate', 'Encourage extracurricular participation',
+         'Continue current study schedule', 'Explore scholarship opportunities', 'Set higher academic targets']
+      : predVal === 'At Risk'
+      ? ['Schedule counseling session', 'Improve attendance immediately',
+         'Provide academic mentoring', 'Review financial aid options', 'Engage parents in discussion']
+      : ['Emergency counseling required', 'Convene parents & administration',
+         'Arrange financial assistance', 'Mental health support needed', 'Create personal action plan'];
+    recs.forEach(r => { doc.text(`\u2022  ${r}`, 18, y); y += 6; });
+    y += 4;
+
+    /* — Assessment summary — */
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
+    doc.setTextColor(37, 99, 235);
+    doc.text('ASSESSMENT SUMMARY', 14, y); y += 7;
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
+    doc.setTextColor(15, 23, 42);
+    const entries = Object.entries(summ);
+    const colW = (W - 28) / 2;
+    let col1y = y, col2y = y;
+    entries.forEach(([k, v], idx) => {
+      const cx  = idx % 2 === 0 ? 14 : 14 + colW + 2;
+      let   cy  = idx % 2 === 0 ? col1y : col2y;
+      if (cy > 270) { doc.addPage(); col1y = 20; col2y = 20; cy = 20; }
+      doc.setFillColor(idx % 4 < 2 ? 248 : 241, idx % 4 < 2 ? 250 : 244, 252);
+      doc.rect(cx, cy - 4, colW, 8, 'F');
+      doc.setFont('helvetica', 'bold');   doc.text(k, cx + 2, cy);
+      doc.setFont('helvetica', 'normal'); doc.text(String(v), cx + colW - 2, cy, { align: 'right' });
+      if (idx % 2 === 0) col1y += 9; else col2y += 9;
+    });
+    y = Math.max(col1y, col2y) + 8;
+
+    /* — Footer — */
+    const pCount = doc.internal.getNumberOfPages();
+    for (let p = 1; p <= pCount; p++) {
+      doc.setPage(p);
+      doc.setFillColor(37, 99, 235);
+      doc.rect(0, 287, W, 10, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(7); doc.setFont('helvetica', 'normal');
+      doc.text('Ekalavya — Empowering Every Child\'s Educational Journey', 14, 293);
+      doc.text(`Page ${p} of ${pCount}`, W - 14, 293, { align: 'right' });
+    }
+
+    doc.save(`Ekalavya_Report_${Date.now()}.pdf`);
+  });
+
+})();
+</script>
+{% endblock %}

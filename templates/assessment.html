@@ -1,0 +1,501 @@
+{% extends "base.html" %}
+{% block title %}Student Assessment — Ekalavya{% endblock %}
+
+{% block content %}
+<section class="assessment-page">
+  <div class="container" style="padding-top:6rem; padding-bottom:4rem">
+
+    <!-- Header -->
+    <div class="text-center mb-5" data-aos="fade-up">
+      <div class="section-chip mb-3">29 Student Features</div>
+      <h1 class="section-title">Student <span class="gradient-text">Assessment</span></h1>
+      <p class="section-sub">Complete all 5 steps for an accurate AI-powered educational prediction.</p>
+    </div>
+
+    <!-- API Error Banner -->
+    {% if errors and errors.__api__ %}
+    <div class="alert-banner alert-banner--danger mb-4" role="alert">
+      <i class="fa-solid fa-circle-exclamation fa-lg flex-shrink-0" aria-hidden="true"></i>
+      <div><strong>Prediction Error</strong><br>{{ errors.__api__ }}</div>
+      <button class="alert-banner__close" onclick="this.parentElement.remove()" aria-label="Dismiss">&times;</button>
+    </div>
+    {% endif %}
+
+    {% if errors and errors | length > 0 and not errors.__api__ %}
+    <div class="alert-banner alert-banner--warning mb-4" role="alert">
+      <i class="fa-solid fa-triangle-exclamation fa-lg flex-shrink-0" aria-hidden="true"></i>
+      <div><strong>Please correct the highlighted fields</strong> and submit again.</div>
+      <button class="alert-banner__close" onclick="this.parentElement.remove()" aria-label="Dismiss">&times;</button>
+    </div>
+    {% endif %}
+
+    <!-- Step progress bar -->
+    <div class="step-progress mb-5" role="navigation" aria-label="Form steps">
+      <div class="step-progress__track" aria-hidden="true">
+        <div class="step-progress__fill" id="stepFill"></div>
+      </div>
+      {% for label in ['Student Info', 'Academics', 'Study & Learning', 'Family', 'Support & Health'] %}
+      <button type="button"
+              class="step-progress__dot {% if loop.index == 1 %}active{% endif %}"
+              data-step="{{ loop.index }}"
+              aria-label="Step {{ loop.index }}: {{ label }}"
+              aria-current="{% if loop.index == 1 %}step{% else %}false{% endif %}">
+        <span class="step-progress__num">{{ loop.index }}</span>
+        <span class="step-progress__lbl">{{ label }}</span>
+      </button>
+      {% endfor %}
+    </div>
+
+    <!-- Form -->
+    <form id="assessmentForm" method="POST" action="{{ url_for('predict_route') }}" novalidate>
+
+      <!-- ═══════════════════════════════════
+           STEP 1 — Student Information
+           ═══════════════════════════════════ -->
+      <div class="form-step active" id="step-1" aria-label="Step 1: Student Information">
+        <div class="form-step__header">
+          <div class="form-step__icon bg-blue-soft"><i class="fa-solid fa-user text-primary" aria-hidden="true"></i></div>
+          <div>
+            <h4 class="form-step__title">Student Information</h4>
+            <p class="form-step__sub">Basic demographic details</p>
+          </div>
+          <div class="form-step__badge ms-auto">Step 1 of 5</div>
+        </div>
+        <div class="form-step__body">
+          <div class="row g-3">
+
+            <div class="col-md-4">
+              <label for="student_id" class="form-label req">Student ID</label>
+              <input type="text" class="form-control {% if errors and errors.student_id %}is-invalid{% endif %}"
+                     id="student_id" name="student_id" placeholder="e.g. STU-001"
+                     value="{{ form_data.student_id if form_data else '' }}" required
+                     aria-describedby="student_id_help" />
+              <div id="student_id_help" class="form-text">Unique identifier for this student</div>
+              {% if errors and errors.student_id %}<div class="invalid-feedback">{{ errors.student_id }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-4">
+              <label for="age" class="form-label req">Age</label>
+              <input type="number" class="form-control {% if errors and errors.age %}is-invalid{% endif %}"
+                     id="age" name="age" min="3" max="25" step="1" placeholder="e.g. 15"
+                     value="{{ form_data.age if form_data else '' }}" required aria-describedby="age_help" />
+              <div id="age_help" class="form-text">3 – 25 years</div>
+              {% if errors and errors.age %}<div class="invalid-feedback">{{ errors.age }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-4">
+              <label for="gender" class="form-label req">Gender</label>
+              <select class="form-select {% if errors and errors.gender %}is-invalid{% endif %}"
+                      id="gender" name="gender" required>
+                <option value="" disabled {% if not form_data or not form_data.gender %}selected{% endif %}>Select gender</option>
+                {% for opt in ['Male','Female','Other'] %}
+                <option value="{{ opt }}" {% if form_data and form_data.gender == opt %}selected{% endif %}>{{ opt }}</option>
+                {% endfor %}
+              </select>
+              {% if errors and errors.gender %}<div class="invalid-feedback">{{ errors.gender }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-6">
+              <label for="class_grade" class="form-label req">Class / Grade</label>
+              <select class="form-select {% if errors and errors.class_grade %}is-invalid{% endif %}"
+                      id="class_grade" name="class_grade" required>
+                <option value="" disabled {% if not form_data or not form_data.class_grade %}selected{% endif %}>Select grade</option>
+                {% for g in ['Grade 1','Grade 2','Grade 3','Grade 4','Grade 5','Grade 6','Grade 7','Grade 8','Grade 9','Grade 10','Grade 11','Grade 12'] %}
+                <option value="{{ g }}" {% if form_data and form_data.class_grade == g %}selected{% endif %}>{{ g }}</option>
+                {% endfor %}
+              </select>
+              {% if errors and errors.class_grade %}<div class="invalid-feedback">{{ errors.class_grade }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-6">
+              <label for="school_type" class="form-label req">School Type</label>
+              <select class="form-select {% if errors and errors.school_type %}is-invalid{% endif %}"
+                      id="school_type" name="school_type" required>
+                <option value="" disabled {% if not form_data or not form_data.school_type %}selected{% endif %}>Select type</option>
+                {% for opt in ['Government','Private','Semi-Private'] %}
+                <option value="{{ opt }}" {% if form_data and form_data.school_type == opt %}selected{% endif %}>{{ opt }}</option>
+                {% endfor %}
+              </select>
+              {% if errors and errors.school_type %}<div class="invalid-feedback">{{ errors.school_type }}</div>{% endif %}
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════
+           STEP 2 — Academic Performance
+           ═══════════════════════════════════ -->
+      <div class="form-step" id="step-2" aria-label="Step 2: Academic Performance" hidden>
+        <div class="form-step__header">
+          <div class="form-step__icon bg-purple-soft"><i class="fa-solid fa-book-open text-purple" aria-hidden="true"></i></div>
+          <div>
+            <h4 class="form-step__title">Academic Performance</h4>
+            <p class="form-step__sub">Scores, attendance and grade history</p>
+          </div>
+          <div class="form-step__badge ms-auto">Step 2 of 5</div>
+        </div>
+        <div class="form-step__body">
+          <div class="row g-3">
+
+            <div class="col-md-4">
+              <label for="attendance_percentage" class="form-label req">Attendance (%)</label>
+              <input type="number" class="form-control {% if errors and errors.attendance_percentage %}is-invalid{% endif %}"
+                     id="attendance_percentage" name="attendance_percentage" min="0" max="100" step="0.1" placeholder="e.g. 85.5"
+                     value="{{ form_data.attendance_percentage if form_data else '' }}" required />
+              <div class="form-text">0 – 100 %</div>
+              {% if errors and errors.attendance_percentage %}<div class="invalid-feedback">{{ errors.attendance_percentage }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-4">
+              <label for="previous_grade_percentage" class="form-label req">Previous Grade (%)</label>
+              <input type="number" class="form-control {% if errors and errors.previous_grade_percentage %}is-invalid{% endif %}"
+                     id="previous_grade_percentage" name="previous_grade_percentage" min="0" max="100" step="0.1" placeholder="e.g. 72.0"
+                     value="{{ form_data.previous_grade_percentage if form_data else '' }}" required />
+              <div class="form-text">0 – 100 %</div>
+              {% if errors and errors.previous_grade_percentage %}<div class="invalid-feedback">{{ errors.previous_grade_percentage }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-4">
+              <label for="math_score" class="form-label req">Math Score</label>
+              <input type="number" class="form-control {% if errors and errors.math_score %}is-invalid{% endif %}"
+                     id="math_score" name="math_score" min="0" max="100" step="1" placeholder="e.g. 75"
+                     value="{{ form_data.math_score if form_data else '' }}" required />
+              {% if errors and errors.math_score %}<div class="invalid-feedback">{{ errors.math_score }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-4">
+              <label for="science_score" class="form-label req">Science Score</label>
+              <input type="number" class="form-control {% if errors and errors.science_score %}is-invalid{% endif %}"
+                     id="science_score" name="science_score" min="0" max="100" step="1" placeholder="e.g. 68"
+                     value="{{ form_data.science_score if form_data else '' }}" required />
+              {% if errors and errors.science_score %}<div class="invalid-feedback">{{ errors.science_score }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-4">
+              <label for="english_score" class="form-label req">English Score</label>
+              <input type="number" class="form-control {% if errors and errors.english_score %}is-invalid{% endif %}"
+                     id="english_score" name="english_score" min="0" max="100" step="1" placeholder="e.g. 80"
+                     value="{{ form_data.english_score if form_data else '' }}" required />
+              {% if errors and errors.english_score %}<div class="invalid-feedback">{{ errors.english_score }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-4">
+              <label for="social_science_score" class="form-label req">Social Science Score</label>
+              <input type="number" class="form-control {% if errors and errors.social_science_score %}is-invalid{% endif %}"
+                     id="social_science_score" name="social_science_score" min="0" max="100" step="1" placeholder="e.g. 65"
+                     value="{{ form_data.social_science_score if form_data else '' }}" required />
+              {% if errors and errors.social_science_score %}<div class="invalid-feedback">{{ errors.social_science_score }}</div>{% endif %}
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════
+           STEP 3 — Study & Learning
+           ═══════════════════════════════════ -->
+      <div class="form-step" id="step-3" aria-label="Step 3: Study and Learning" hidden>
+        <div class="form-step__header">
+          <div class="form-step__icon bg-green-soft"><i class="fa-solid fa-pen-to-square text-success" aria-hidden="true"></i></div>
+          <div>
+            <h4 class="form-step__title">Study &amp; Learning</h4>
+            <p class="form-step__sub">Daily habits and learning environment</p>
+          </div>
+          <div class="form-step__badge ms-auto">Step 3 of 5</div>
+        </div>
+        <div class="form-step__body">
+          <div class="row g-3">
+
+            <div class="col-md-4">
+              <label for="study_hours_per_day" class="form-label req">Study Hours / Day</label>
+              <input type="number" class="form-control {% if errors and errors.study_hours_per_day %}is-invalid{% endif %}"
+                     id="study_hours_per_day" name="study_hours_per_day" min="0" max="24" step="0.5" placeholder="e.g. 3"
+                     value="{{ form_data.study_hours_per_day if form_data else '' }}" required />
+              <div class="form-text">0 – 24 hours</div>
+              {% if errors and errors.study_hours_per_day %}<div class="invalid-feedback">{{ errors.study_hours_per_day }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-4">
+              <label for="homework_completion" class="form-label req">Homework Completion</label>
+              <select class="form-select {% if errors and errors.homework_completion %}is-invalid{% endif %}"
+                      id="homework_completion" name="homework_completion" required>
+                <option value="" disabled {% if not form_data or not form_data.homework_completion %}selected{% endif %}>Select level</option>
+                {% for opt in ['Always','Usually','Sometimes','Rarely','Never'] %}
+                <option value="{{ opt }}" {% if form_data and form_data.homework_completion == opt %}selected{% endif %}>{{ opt }}</option>
+                {% endfor %}
+              </select>
+              {% if errors and errors.homework_completion %}<div class="invalid-feedback">{{ errors.homework_completion }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-4">
+              <label for="learning_difficulty" class="form-label req">Learning Difficulty</label>
+              <select class="form-select {% if errors and errors.learning_difficulty %}is-invalid{% endif %}"
+                      id="learning_difficulty" name="learning_difficulty" required>
+                <option value="" disabled {% if not form_data or not form_data.learning_difficulty %}selected{% endif %}>Select</option>
+                {% for opt in ['None','Mild','Moderate','Severe'] %}
+                <option value="{{ opt }}" {% if form_data and form_data.learning_difficulty == opt %}selected{% endif %}>{{ opt }}</option>
+                {% endfor %}
+              </select>
+              {% if errors and errors.learning_difficulty %}<div class="invalid-feedback">{{ errors.learning_difficulty }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-4">
+              <label for="internet_access" class="form-label req">Internet Access</label>
+              <select class="form-select {% if errors and errors.internet_access %}is-invalid{% endif %}"
+                      id="internet_access" name="internet_access" required>
+                <option value="" disabled {% if not form_data or not form_data.internet_access %}selected{% endif %}>Select</option>
+                {% for opt in ['Yes','No'] %}
+                <option value="{{ opt }}" {% if form_data and form_data.internet_access == opt %}selected{% endif %}>{{ opt }}</option>
+                {% endfor %}
+              </select>
+              {% if errors and errors.internet_access %}<div class="invalid-feedback">{{ errors.internet_access }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-4">
+              <label for="digital_device" class="form-label req">Digital Device</label>
+              <select class="form-select {% if errors and errors.digital_device %}is-invalid{% endif %}"
+                      id="digital_device" name="digital_device" required>
+                <option value="" disabled {% if not form_data or not form_data.digital_device %}selected{% endif %}>Select device</option>
+                {% for opt in ['Smartphone','Tablet','Laptop','Desktop','None'] %}
+                <option value="{{ opt }}" {% if form_data and form_data.digital_device == opt %}selected{% endif %}>{{ opt }}</option>
+                {% endfor %}
+              </select>
+              {% if errors and errors.digital_device %}<div class="invalid-feedback">{{ errors.digital_device }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-4">
+              <label for="motivation_level" class="form-label req">Motivation Level</label>
+              <select class="form-select {% if errors and errors.motivation_level %}is-invalid{% endif %}"
+                      id="motivation_level" name="motivation_level" required>
+                <option value="" disabled {% if not form_data or not form_data.motivation_level %}selected{% endif %}>Select level</option>
+                {% for opt in ['Very High','High','Medium','Low','Very Low'] %}
+                <option value="{{ opt }}" {% if form_data and form_data.motivation_level == opt %}selected{% endif %}>{{ opt }}</option>
+                {% endfor %}
+              </select>
+              {% if errors and errors.motivation_level %}<div class="invalid-feedback">{{ errors.motivation_level }}</div>{% endif %}
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════
+           STEP 4 — Family Background
+           ═══════════════════════════════════ -->
+      <div class="form-step" id="step-4" aria-label="Step 4: Family Background" hidden>
+        <div class="form-step__header">
+          <div class="form-step__icon bg-orange-soft"><i class="fa-solid fa-house-user text-warning" aria-hidden="true"></i></div>
+          <div>
+            <h4 class="form-step__title">Family Background</h4>
+            <p class="form-step__sub">Socioeconomic and commute details</p>
+          </div>
+          <div class="form-step__badge ms-auto">Step 4 of 5</div>
+        </div>
+        <div class="form-step__body">
+          <div class="row g-3">
+
+            <div class="col-md-4">
+              <label for="parent_education" class="form-label req">Parent Education</label>
+              <select class="form-select {% if errors and errors.parent_education %}is-invalid{% endif %}"
+                      id="parent_education" name="parent_education" required>
+                <option value="" disabled {% if not form_data or not form_data.parent_education %}selected{% endif %}>Select</option>
+                {% for opt in ['No Formal Education','Primary','Secondary','Higher Secondary','Graduate','Post Graduate'] %}
+                <option value="{{ opt }}" {% if form_data and form_data.parent_education == opt %}selected{% endif %}>{{ opt }}</option>
+                {% endfor %}
+              </select>
+              {% if errors and errors.parent_education %}<div class="invalid-feedback">{{ errors.parent_education }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-4">
+              <label for="parent_occupation" class="form-label req">Parent Occupation</label>
+              <select class="form-select {% if errors and errors.parent_occupation %}is-invalid{% endif %}"
+                      id="parent_occupation" name="parent_occupation" required>
+                <option value="" disabled {% if not form_data or not form_data.parent_occupation %}selected{% endif %}>Select</option>
+                {% for opt in ['Unemployed','Daily Wage Worker','Farmer','Self Employed','Skilled Worker','Salaried','Business','Professional'] %}
+                <option value="{{ opt }}" {% if form_data and form_data.parent_occupation == opt %}selected{% endif %}>{{ opt }}</option>
+                {% endfor %}
+              </select>
+              {% if errors and errors.parent_occupation %}<div class="invalid-feedback">{{ errors.parent_occupation }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-4">
+              <label for="annual_family_income" class="form-label req">Annual Family Income (&#8377;)</label>
+              <input type="number" class="form-control {% if errors and errors.annual_family_income %}is-invalid{% endif %}"
+                     id="annual_family_income" name="annual_family_income" min="0" max="10000000" step="1000" placeholder="e.g. 250000"
+                     value="{{ form_data.annual_family_income if form_data else '' }}" required />
+              <div class="form-text">Annual income in Indian Rupees</div>
+              {% if errors and errors.annual_family_income %}<div class="invalid-feedback">{{ errors.annual_family_income }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-4">
+              <label for="family_size" class="form-label req">Family Size</label>
+              <input type="number" class="form-control {% if errors and errors.family_size %}is-invalid{% endif %}"
+                     id="family_size" name="family_size" min="1" max="20" step="1" placeholder="e.g. 5"
+                     value="{{ form_data.family_size if form_data else '' }}" required />
+              <div class="form-text">Total family members</div>
+              {% if errors and errors.family_size %}<div class="invalid-feedback">{{ errors.family_size }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-4">
+              <label for="distance_to_school_km" class="form-label req">Distance to School (km)</label>
+              <input type="number" class="form-control {% if errors and errors.distance_to_school_km %}is-invalid{% endif %}"
+                     id="distance_to_school_km" name="distance_to_school_km" min="0" max="200" step="0.1" placeholder="e.g. 3.5"
+                     value="{{ form_data.distance_to_school_km if form_data else '' }}" required />
+              <div class="form-text">0 – 200 km</div>
+              {% if errors and errors.distance_to_school_km %}<div class="invalid-feedback">{{ errors.distance_to_school_km }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-4">
+              <label for="transportation" class="form-label req">Transportation Mode</label>
+              <select class="form-select {% if errors and errors.transportation %}is-invalid{% endif %}"
+                      id="transportation" name="transportation" required>
+                <option value="" disabled {% if not form_data or not form_data.transportation %}selected{% endif %}>Select mode</option>
+                {% for opt in ['Walking','Bicycle','Auto Rickshaw','School Bus','Public Bus','Personal Vehicle'] %}
+                <option value="{{ opt }}" {% if form_data and form_data.transportation == opt %}selected{% endif %}>{{ opt }}</option>
+                {% endfor %}
+              </select>
+              {% if errors and errors.transportation %}<div class="invalid-feedback">{{ errors.transportation }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-4">
+              <label for="scholarship_received" class="form-label req">Scholarship Received</label>
+              <select class="form-select {% if errors and errors.scholarship_received %}is-invalid{% endif %}"
+                      id="scholarship_received" name="scholarship_received" required>
+                <option value="" disabled {% if not form_data or not form_data.scholarship_received %}selected{% endif %}>Select</option>
+                {% for opt in ['Yes','No'] %}
+                <option value="{{ opt }}" {% if form_data and form_data.scholarship_received == opt %}selected{% endif %}>{{ opt }}</option>
+                {% endfor %}
+              </select>
+              {% if errors and errors.scholarship_received %}<div class="invalid-feedback">{{ errors.scholarship_received }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-4">
+              <label for="dropout_history_in_family" class="form-label req">Dropout History in Family</label>
+              <select class="form-select {% if errors and errors.dropout_history_in_family %}is-invalid{% endif %}"
+                      id="dropout_history_in_family" name="dropout_history_in_family" required>
+                <option value="" disabled {% if not form_data or not form_data.dropout_history_in_family %}selected{% endif %}>Select</option>
+                {% for opt in ['Yes','No'] %}
+                <option value="{{ opt }}" {% if form_data and form_data.dropout_history_in_family == opt %}selected{% endif %}>{{ opt }}</option>
+                {% endfor %}
+              </select>
+              {% if errors and errors.dropout_history_in_family %}<div class="invalid-feedback">{{ errors.dropout_history_in_family }}</div>{% endif %}
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════
+           STEP 5 — Support & Health
+           ═══════════════════════════════════ -->
+      <div class="form-step" id="step-5" aria-label="Step 5: Support and Health" hidden>
+        <div class="form-step__header">
+          <div class="form-step__icon bg-red-soft"><i class="fa-solid fa-heart-pulse text-danger" aria-hidden="true"></i></div>
+          <div>
+            <h4 class="form-step__title">Support &amp; Health</h4>
+            <p class="form-step__sub">Health, engagement, and assessment</p>
+          </div>
+          <div class="form-step__badge ms-auto">Step 5 of 5</div>
+        </div>
+        <div class="form-step__body">
+          <div class="row g-3">
+
+            <div class="col-md-4">
+              <label for="mentoring_support" class="form-label req">Mentoring Support</label>
+              <select class="form-select {% if errors and errors.mentoring_support %}is-invalid{% endif %}"
+                      id="mentoring_support" name="mentoring_support" required>
+                <option value="" disabled {% if not form_data or not form_data.mentoring_support %}selected{% endif %}>Select</option>
+                {% for opt in ['Yes','No'] %}
+                <option value="{{ opt }}" {% if form_data and form_data.mentoring_support == opt %}selected{% endif %}>{{ opt }}</option>
+                {% endfor %}
+              </select>
+              {% if errors and errors.mentoring_support %}<div class="invalid-feedback">{{ errors.mentoring_support }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-4">
+              <label for="extracurricular_participation" class="form-label req">Extracurricular</label>
+              <select class="form-select {% if errors and errors.extracurricular_participation %}is-invalid{% endif %}"
+                      id="extracurricular_participation" name="extracurricular_participation" required>
+                <option value="" disabled {% if not form_data or not form_data.extracurricular_participation %}selected{% endif %}>Select</option>
+                {% for opt in ['Yes','No'] %}
+                <option value="{{ opt }}" {% if form_data and form_data.extracurricular_participation == opt %}selected{% endif %}>{{ opt }}</option>
+                {% endfor %}
+              </select>
+              {% if errors and errors.extracurricular_participation %}<div class="invalid-feedback">{{ errors.extracurricular_participation }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-4">
+              <label for="health_issue" class="form-label req">Health Issue</label>
+              <select class="form-select {% if errors and errors.health_issue %}is-invalid{% endif %}"
+                      id="health_issue" name="health_issue" required>
+                <option value="" disabled {% if not form_data or not form_data.health_issue %}selected{% endif %}>Select</option>
+                {% for opt in ['None','Minor','Moderate','Chronic'] %}
+                <option value="{{ opt }}" {% if form_data and form_data.health_issue == opt %}selected{% endif %}>{{ opt }}</option>
+                {% endfor %}
+              </select>
+              {% if errors and errors.health_issue %}<div class="invalid-feedback">{{ errors.health_issue }}</div>{% endif %}
+            </div>
+
+            <div class="col-md-6">
+              <label for="teacher_assessment" class="form-label req">Teacher Assessment</label>
+              <select class="form-select {% if errors and errors.teacher_assessment %}is-invalid{% endif %}"
+                      id="teacher_assessment" name="teacher_assessment" required>
+                <option value="" disabled {% if not form_data or not form_data.teacher_assessment %}selected{% endif %}>Select</option>
+                {% for opt in ['Excellent','Good','Average','Below Average','Poor'] %}
+                <option value="{{ opt }}" {% if form_data and form_data.teacher_assessment == opt %}selected{% endif %}>{{ opt }}</option>
+                {% endfor %}
+              </select>
+              {% if errors and errors.teacher_assessment %}<div class="invalid-feedback">{{ errors.teacher_assessment }}</div>{% endif %}
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation buttons -->
+      <div class="form-nav mt-4 d-flex justify-content-between align-items-center">
+        <button type="button" class="ek-btn ek-btn--ghost" id="prevBtn" style="visibility:hidden" aria-label="Previous step">
+          <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Previous
+        </button>
+        <div class="form-nav__dots" aria-hidden="true">
+          <span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        </div>
+        <button type="button" class="ek-btn ek-btn--primary" id="nextBtn" aria-label="Next step">
+          Next <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <!-- Hidden submit (shown on last step) -->
+      <div class="text-center mt-4" id="submitWrap" hidden>
+        <button type="submit" class="ek-btn ek-btn--primary ek-btn--lg px-5" id="submitBtn">
+          <i class="fa-solid fa-brain" aria-hidden="true"></i>
+          <span id="submitBtnText">Predict Educational Status</span>
+        </button>
+        <p class="text-muted mt-3" style="font-size:.82rem">
+          <i class="fa-solid fa-shield-halved text-success" aria-hidden="true"></i>
+          Data processed in real time. Never stored.
+        </p>
+      </div>
+
+    </form>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+/* Scroll to first invalid on server-side error return */
+document.addEventListener('DOMContentLoaded', function () {
+  const firstInvalid = document.querySelector('.is-invalid');
+  if (firstInvalid) {
+    const stepEl = firstInvalid.closest('.form-step');
+    if (stepEl) {
+      const stepNum = parseInt(stepEl.id.split('-')[1]);
+      if (window.EkalavyaForm) window.EkalavyaForm.goToStep(stepNum);
+    }
+    setTimeout(() => firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
+  }
+});
+</script>
+{% endblock %}

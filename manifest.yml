@@ -1,0 +1,16 @@
+# =============================================================================
+# IBM Cloud Foundry Deployment Manifest
+# =============================================================================
+applications:
+  - name: ekalavya
+    memory: 256M
+    instances: 1
+    buildpack: python_buildpack
+    command: gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+    env:
+      FLASK_ENV: production
+      FLASK_SECRET_KEY: ((FLASK_SECRET_KEY))
+      IBM_API_KEY: ((IBM_API_KEY))
+      IBM_WML_URL: ((IBM_WML_URL))
+      IBM_SPACE_ID: ((IBM_SPACE_ID))
+      IBM_DEPLOYMENT_ID: ((IBM_DEPLOYMENT_ID))

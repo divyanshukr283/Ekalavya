@@ -1,0 +1,387 @@
+{% extends "base.html" %}
+{% block title %}Ekalavya — Supporting Every Child's Learning Journey{% endblock %}
+
+{% block content %}
+
+<!-- ═══════════════════════════════ HERO ══════════════════════════════════ -->
+<section class="hero" id="home" aria-label="Hero">
+  <canvas class="hero__particles" id="particleCanvas" aria-hidden="true"></canvas>
+  <div class="hero__orbs" aria-hidden="true">
+    <div class="hero__orb hero__orb--1"></div>
+    <div class="hero__orb hero__orb--2"></div>
+    <div class="hero__orb hero__orb--3"></div>
+  </div>
+  <div class="hero__floats" aria-hidden="true">
+    <div class="hero__float hero__float--1"><i class="fa-solid fa-graduation-cap"></i></div>
+    <div class="hero__float hero__float--2"><i class="fa-solid fa-book-open"></i></div>
+    <div class="hero__float hero__float--3"><i class="fa-solid fa-heart"></i></div>
+    <div class="hero__float hero__float--4"><i class="fa-solid fa-chart-line"></i></div>
+    <div class="hero__float hero__float--5"><i class="fa-solid fa-lightbulb"></i></div>
+    <div class="hero__float hero__float--6"><i class="fa-solid fa-users"></i></div>
+  </div>
+
+  <div class="container hero__container">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-6">
+        <div class="hero__pill mb-4" data-aos="fade-down" data-aos-duration="600">
+          <span class="hero__pill-dot" aria-hidden="true"></span>
+          AI-Powered Early Intervention Platform
+        </div>
+        <h1 class="hero__title" data-aos="fade-up" data-aos-duration="700" data-aos-delay="100">
+          Every Child
+          <span class="hero__title-grad">Deserves</span>
+          a Chance to Succeed
+        </h1>
+        <p class="hero__sub" data-aos="fade-up" data-aos-duration="700" data-aos-delay="200">
+          Ekalavya uses advanced AI to analyse <strong>29 student features</strong> and identify children
+          who need support — empowering educators, NGOs, and communities to intervene before it's too late.
+        </p>
+        <div class="hero__actions" data-aos="fade-up" data-aos-duration="700" data-aos-delay="300">
+          <a href="{{ url_for('assessment') }}" class="ek-btn ek-btn--primary ek-btn--lg">
+            <i class="fa-solid fa-play" aria-hidden="true"></i> Start Assessment
+          </a>
+          <a href="#mission" class="ek-btn ek-btn--ghost ek-btn--lg">
+            <i class="fa-solid fa-heart" aria-hidden="true"></i> Our Mission
+          </a>
+        </div>
+        <div class="hero__counters" data-aos="fade-up" data-aos-duration="700" data-aos-delay="400">
+          <div class="hero__counter">
+            <span class="hero__counter-num" data-target="29">0</span>
+            <span class="hero__counter-label">Student Features</span>
+          </div>
+          <div class="hero__counter">
+            <span class="hero__counter-num" data-target="3">0</span>
+            <span class="hero__counter-label">Outcome Classes</span>
+          </div>
+          <div class="hero__counter">
+            <span class="hero__counter-num" data-target="100">0</span>
+            <span class="hero__counter-label">% Free to Use</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6 d-flex justify-content-center" data-aos="fade-left" data-aos-duration="800" data-aos-delay="200">
+        <div class="hero__dashboard">
+          <div class="hdash__card hdash__card--profile">
+            <div class="hdash__profile-top">
+              <div class="hdash__avatar" aria-hidden="true">
+                <i class="fa-solid fa-user-graduate"></i>
+              </div>
+              <div>
+                <div class="hdash__name">Student Assessment</div>
+                <div class="hdash__grade">Grade 8 &bull; Government School</div>
+              </div>
+              <div class="hdash__badge hdash__badge--on-track ms-auto">On Track</div>
+            </div>
+            <div class="hdash__metrics">
+              <div class="hdash__metric-row">
+                <span class="hdash__metric-lbl">Attendance</span>
+                <div class="hdash__bar-wrap" role="progressbar" aria-valuenow="88" aria-valuemin="0" aria-valuemax="100" aria-label="Attendance 88%">
+                  <div class="hdash__bar hdash__bar--green" data-width="88"></div>
+                </div>
+                <span class="hdash__metric-val">88%</span>
+              </div>
+              <div class="hdash__metric-row">
+                <span class="hdash__metric-lbl">Academics</span>
+                <div class="hdash__bar-wrap" role="progressbar" aria-valuenow="76" aria-valuemin="0" aria-valuemax="100" aria-label="Academics 76%">
+                  <div class="hdash__bar hdash__bar--blue" data-width="76"></div>
+                </div>
+                <span class="hdash__metric-val">76%</span>
+              </div>
+              <div class="hdash__metric-row">
+                <span class="hdash__metric-lbl">Motivation</span>
+                <div class="hdash__bar-wrap" role="progressbar" aria-valuenow="82" aria-valuemin="0" aria-valuemax="100" aria-label="Motivation 82%">
+                  <div class="hdash__bar hdash__bar--purple" data-width="82"></div>
+                </div>
+                <span class="hdash__metric-val">82%</span>
+              </div>
+            </div>
+          </div>
+          <div class="hdash__card hdash__card--risk">
+            <div class="hdash__risk-label">Dropout Risk</div>
+            <div class="hdash__risk-gauge" aria-label="Dropout risk 15% - Low">
+              <svg viewBox="0 0 100 60" aria-hidden="true">
+                <path d="M10,55 A40,40 0 0,1 90,55" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="8" stroke-linecap="round"/>
+                <path class="hdash__gauge-fill" d="M10,55 A40,40 0 0,1 90,55" fill="none" stroke="#10B981" stroke-width="8" stroke-linecap="round" stroke-dasharray="126" stroke-dashoffset="107"/>
+              </svg>
+              <div class="hdash__risk-val">15%</div>
+            </div>
+            <div class="hdash__risk-badge">LOW RISK</div>
+          </div>
+          <div class="hdash__card hdash__card--conf">
+            <div class="hdash__conf-ring" aria-label="AI Confidence 94.2%">
+              <svg viewBox="0 0 64 64" aria-hidden="true">
+                <circle cx="32" cy="32" r="26" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="6"/>
+                <circle class="hdash__conf-circle" cx="32" cy="32" r="26" fill="none" stroke="#4F46E5" stroke-width="6" stroke-linecap="round"
+                  stroke-dasharray="163" stroke-dashoffset="10" transform="rotate(-90 32 32)"/>
+              </svg>
+              <div class="hdash__conf-val">94%</div>
+            </div>
+            <div class="hdash__conf-label">Confidence</div>
+          </div>
+          <div class="hdash__card hdash__card--radar">
+            <div class="hdash__radar-title">Performance Radar</div>
+            <canvas id="heroRadar" width="120" height="100" aria-label="Student performance radar chart" role="img"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="hero__wave" aria-hidden="true">
+    <svg viewBox="0 0 1440 80" preserveAspectRatio="none"><path d="M0,40 C480,80 960,0 1440,40 L1440,80 L0,80 Z"/></svg>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ MISSION ═══════════════════════════════ -->
+<section class="section-pad" id="mission" aria-label="Our Mission">
+  <div class="container">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-6" data-aos="fade-right">
+        <div class="section-chip mb-3">Our Mission</div>
+        <h2 class="section-title">Why Early Intervention <span class="gradient-text">Matters</span></h2>
+        <p class="section-body mt-3">
+          Millions of children in underserved communities drop out of school every year — not because
+          they lack potential, but because no one noticed the warning signs in time.
+        </p>
+        <p class="section-body mt-2">
+          <strong>Ekalavya</strong> was built for educators, volunteers, NGO field workers, and community
+          education coordinators who work with government schools and rural learning centres.
+          By identifying at-risk students early, we help communities direct their limited resources
+          exactly where they're needed most.
+        </p>
+        <div class="about-highlights mt-4">
+          <div class="about-hl"><i class="fa-solid fa-hand-holding-heart text-primary" aria-hidden="true"></i><span>Designed for NGOs and community learning centres</span></div>
+          <div class="about-hl"><i class="fa-solid fa-school text-success" aria-hidden="true"></i><span>Supports government and rural school programs</span></div>
+          <div class="about-hl"><i class="fa-solid fa-shield-halved text-amber" aria-hidden="true"></i><span>Zero data storage — student privacy protected</span></div>
+          <div class="about-hl"><i class="fa-solid fa-circle-dollar-to-slot text-teal" aria-hidden="true"></i><span>Free to use for educational communities</span></div>
+        </div>
+      </div>
+      <div class="col-lg-6" data-aos="fade-left" data-aos-delay="100">
+        <div class="about-grid">
+          <div class="about-metric glass-card text-center p-4">
+            <div class="about-metric__icon bg-success-soft mb-3"><i class="fa-solid fa-user-check fa-2x text-success" aria-hidden="true"></i></div>
+            <div class="about-metric__val text-success">On Track</div>
+            <div class="about-metric__desc">Student is progressing well</div>
+          </div>
+          <div class="about-metric glass-card text-center p-4">
+            <div class="about-metric__icon bg-warning-soft mb-3"><i class="fa-solid fa-triangle-exclamation fa-2x text-warning" aria-hidden="true"></i></div>
+            <div class="about-metric__val text-warning">At Risk</div>
+            <div class="about-metric__desc">Needs early support</div>
+          </div>
+          <div class="about-metric about-metric--wide glass-card text-center p-4">
+            <div class="about-metric__icon bg-danger-soft mb-3"><i class="fa-solid fa-circle-exclamation fa-2x text-danger" aria-hidden="true"></i></div>
+            <div class="about-metric__val text-danger">Dropout Risk</div>
+            <div class="about-metric__desc">Urgent intervention required</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ COMMUNITY IMPACT ══════════════════════ -->
+<section class="section-pad bg-surface" id="impact" aria-label="Community Impact">
+  <div class="container">
+    <div class="text-center mb-5" data-aos="fade-up">
+      <div class="section-chip mb-3">Educational Equity Through Data</div>
+      <h2 class="section-title">Supporting Every Child's <span class="gradient-text">Learning Journey</span></h2>
+      <p class="section-sub">Ekalavya helps communities bridge the gap between data and action</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="0">
+        <div class="impact-card">
+          <div class="impact-card__icon bg-blue-soft"><i class="fa-solid fa-school text-primary fa-2x" aria-hidden="true"></i></div>
+          <h5 class="impact-card__title">Government Schools</h5>
+          <p class="impact-card__desc">Enable teachers and headmasters to identify students who need extra academic or emotional support.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="80">
+        <div class="impact-card">
+          <div class="impact-card__icon bg-green-soft"><i class="fa-solid fa-hands-helping text-success fa-2x" aria-hidden="true"></i></div>
+          <h5 class="impact-card__title">NGOs &amp; Volunteers</h5>
+          <p class="impact-card__desc">Help field workers prioritise their outreach and counselling activities based on objective AI insights.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="160">
+        <div class="impact-card">
+          <div class="impact-card__icon bg-purple-soft"><i class="fa-solid fa-map-marked-alt text-purple fa-2x" aria-hidden="true"></i></div>
+          <h5 class="impact-card__title">Rural Communities</h5>
+          <p class="impact-card__desc">Bring data-driven decision making to areas where educational resources and counsellors are scarce.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="240">
+        <div class="impact-card">
+          <div class="impact-card__icon bg-orange-soft"><i class="fa-solid fa-chalkboard-teacher text-warning fa-2x" aria-hidden="true"></i></div>
+          <h5 class="impact-card__title">Education Coordinators</h5>
+          <p class="impact-card__desc">Support district-level education programmes by tracking risk patterns across multiple assessments.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ FEATURES ══════════════════════════════ -->
+<section class="section-pad" id="features" aria-label="Platform Features">
+  <div class="container">
+    <div class="text-center mb-5" data-aos="fade-up">
+      <div class="section-chip mb-3">Platform Features</div>
+      <h2 class="section-title">Everything You Need to <span class="gradient-text">Act Early</span></h2>
+      <p class="section-sub">Comprehensive AI-driven tools designed for real-world educational contexts</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="0">
+        <div class="feat-card">
+          <div class="feat-icon bg-blue-soft"><i class="fa-solid fa-brain text-primary fa-lg" aria-hidden="true"></i></div>
+          <h5 class="feat-title">AI Prediction Engine</h5>
+          <p class="feat-desc">Advanced machine learning model analyses 29 student features to predict educational outcomes with high accuracy.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="60">
+        <div class="feat-card">
+          <div class="feat-icon bg-purple-soft"><i class="fa-solid fa-chart-area text-purple fa-lg" aria-hidden="true"></i></div>
+          <h5 class="feat-title">AI Insight Dashboard</h5>
+          <p class="feat-desc">Visual radar charts, risk meters, readiness scores, and academic bar charts generated from every assessment.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="120">
+        <div class="feat-card">
+          <div class="feat-icon bg-green-soft"><i class="fa-solid fa-list-check text-success fa-lg" aria-hidden="true"></i></div>
+          <h5 class="feat-title">Smart Recommendations</h5>
+          <p class="feat-desc">Rule-based personalised recommendations tailored to each student's specific risk profile and circumstances.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="0">
+        <div class="feat-card">
+          <div class="feat-icon bg-teal-soft"><i class="fa-solid fa-file-pdf text-teal fa-lg" aria-hidden="true"></i></div>
+          <h5 class="feat-title">PDF Assessment Report</h5>
+          <p class="feat-desc">Download a complete professional report with prediction, risk analysis, recommendations, and intervention plan.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="60">
+        <div class="feat-card">
+          <div class="feat-icon bg-orange-soft"><i class="fa-solid fa-gauge-high text-warning fa-lg" aria-hidden="true"></i></div>
+          <h5 class="feat-title">Learning Risk Meter</h5>
+          <p class="feat-desc">Animated semicircle gauge showing computed dropout risk percentage — Low, Medium, or High priority.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="120">
+        <div class="feat-card">
+          <div class="feat-icon bg-red-soft"><i class="fa-solid fa-shield-halved text-danger fa-lg" aria-hidden="true"></i></div>
+          <h5 class="feat-title">Privacy by Design</h5>
+          <p class="feat-desc">No student data is stored, logged, or retained. Each assessment is processed in real time and immediately discarded.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ HOW IT WORKS ══════════════════════════ -->
+<section class="section-pad bg-surface" id="how-it-works" aria-label="How It Works">
+  <div class="container">
+    <div class="text-center mb-5" data-aos="fade-up">
+      <div class="section-chip mb-3">Simple Process</div>
+      <h2 class="section-title">Five Steps to <span class="gradient-text">Meaningful Action</span></h2>
+      <p class="section-sub">From data collection to actionable recommendations in under a minute</p>
+    </div>
+    <div class="steps-flow" role="list">
+      <div class="step-item" data-aos="fade-up" data-aos-delay="0" role="listitem">
+        <div class="step-num" aria-hidden="true">01</div>
+        <div class="step-icon" aria-hidden="true"><i class="fa-solid fa-clipboard-list fa-2x"></i></div>
+        <h6 class="step-title">Collect Information</h6>
+        <p class="step-desc">Fill in 29 student features across 5 structured steps covering academics, family, and environment.</p>
+      </div>
+      <div class="step-arrow" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></div>
+      <div class="step-item" data-aos="fade-up" data-aos-delay="80" role="listitem">
+        <div class="step-num" aria-hidden="true">02</div>
+        <div class="step-icon" aria-hidden="true"><i class="fa-solid fa-check-double fa-2x"></i></div>
+        <h6 class="step-title">Validate</h6>
+        <p class="step-desc">Automatic validation ensures all data is complete and within expected ranges before submission.</p>
+      </div>
+      <div class="step-arrow" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></div>
+      <div class="step-item" data-aos="fade-up" data-aos-delay="160" role="listitem">
+        <div class="step-num" aria-hidden="true">03</div>
+        <div class="step-icon" aria-hidden="true"><i class="fa-solid fa-robot fa-2x"></i></div>
+        <h6 class="step-title">AI Analysis</h6>
+        <p class="step-desc">The deployed machine learning model analyses all features and generates a prediction in real time.</p>
+      </div>
+      <div class="step-arrow" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></div>
+      <div class="step-item" data-aos="fade-up" data-aos-delay="240" role="listitem">
+        <div class="step-num" aria-hidden="true">04</div>
+        <div class="step-icon" aria-hidden="true"><i class="fa-solid fa-chart-bar fa-2x"></i></div>
+        <h6 class="step-title">Visual Insights</h6>
+        <p class="step-desc">View radar charts, risk meter, readiness score, strengths, and areas to improve in a single dashboard.</p>
+      </div>
+      <div class="step-arrow" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></div>
+      <div class="step-item" data-aos="fade-up" data-aos-delay="320" role="listitem">
+        <div class="step-num" aria-hidden="true">05</div>
+        <div class="step-icon" aria-hidden="true"><i class="fa-solid fa-file-arrow-down fa-2x"></i></div>
+        <h6 class="step-title">Act &amp; Report</h6>
+        <p class="step-desc">Download a PDF report and follow personalised intervention recommendations for immediate action.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ CTA ══════════════════════════════════ -->
+<section class="cta-banner" aria-label="Start Assessment">
+  <div class="container">
+    <div class="cta-banner__inner" data-aos="zoom-in">
+      <div class="cta-banner__orb" aria-hidden="true"></div>
+      <div class="text-center">
+        <h2 class="cta-banner__title">Begin Supporting a Student Today</h2>
+        <p class="cta-banner__sub">Free, private, and ready for communities. No registration required.</p>
+        <a href="{{ url_for('assessment') }}" class="ek-btn ek-btn--primary ek-btn--lg mt-3">
+          <i class="fa-solid fa-play me-2" aria-hidden="true"></i> Start Student Assessment
+        </a>
+        <div class="cta-banner__note mt-3">
+          <i class="fa-solid fa-shield-halved text-success me-1" aria-hidden="true"></i>
+          <small>No data stored &middot; Real-time analysis &middot; Completely free</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function () {
+  /* Hero mini radar chart */
+  const el = document.getElementById('heroRadar');
+  if (!el || typeof Chart === 'undefined') return;
+  new Chart(el, {
+    type: 'radar',
+    data: {
+      labels: ['Academic', 'Attend.', 'Engage.', 'Support', 'Motivat.', 'Homework'],
+      datasets: [{
+        data: [76, 88, 70, 62, 82, 85],
+        backgroundColor: 'rgba(79,70,229,0.22)',
+        borderColor: 'rgba(79,70,229,0.9)',
+        borderWidth: 2,
+        pointBackgroundColor: '#4F46E5',
+        pointRadius: 3,
+      }]
+    },
+    options: {
+      responsive: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        r: {
+          min: 0, max: 100,
+          ticks: { display: false },
+          grid: { color: 'rgba(255,255,255,0.15)' },
+          pointLabels: { color: 'rgba(255,255,255,0.75)', font: { size: 8 } },
+          angleLines: { color: 'rgba(255,255,255,0.15)' },
+        }
+      }
+    }
+  });
+})();
+</script>
+{% endblock %}
